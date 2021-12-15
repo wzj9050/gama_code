@@ -115,7 +115,7 @@ class Smi_Wat_Ali:
 
 
 ali_score_dict = {"match": 3, "mismatch": -2, 'gap_opening': -10,'gap_extension': -1}
-t0 = CFD_input(r'.\STable 19 FractionActive_dlfc_lookup(1)(1).xlsx')
+t0 = CFD_input(r'STable 19 FractionActive_dlfc_lookup(1)(1).xlsx')
 t01 = t0.mismatch_build()
 t02 = t0.deletion_build()
 t03 = t0.insertion_build()

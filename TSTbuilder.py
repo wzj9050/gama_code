@@ -4,9 +4,9 @@
 
 class TSTbuilder:
 
-    def __init__(self, alter_bases, k, n):
+    def __init__(self, k, n):
 
-        self.nex = [[0 for i in range(alter_bases)] for j in range(k * n)]
+        self.nex = [[0,0,0,0] for j in range(k * n)]
         self.cnt = 0
         self.exist = [False] * k * n
         self.exist_f = [False] * k * n
@@ -17,7 +17,7 @@ class TSTbuilder:
             exec('self.path_l{} = []'.format(i))
 
     num_to_base = {0: b'A', 1: b'U', 2: b'G', 3: b'C'}
-    base_to_num = {0: 0, 19: 1, 6: 2, 2: 3}
+    base_to_num = {0: 0, 19: 1, 6: 2, 2: 3, 13:0}# 13 is to transform 'N' into 'A'
 
     # insert seq meanwhile removing all duplicate seqs
     def insert(self, s, id):
@@ -28,12 +28,12 @@ class TSTbuilder:
             if self.nex[p][c] == 0:
                 self.cnt += 1
                 self.nex[p][c] = self.cnt
-
+                self.nex.append([0,0,0,0])
             p = self.nex[p][c]
 
         self.exist[p] = 'True' + " " + str(id)
         self.exist_f[p] = True
-
+        
     # find if seq exist in tree and mark duplicate seqs and seqs with excessive overlap
     def find(self, s, k_f):
         s = s.upper()
@@ -107,8 +107,8 @@ class TSTbuilder:
 
 
 
-'''test1 = TSTbuilder(4,5,20)
-test2 = TSTbuilder(4,5,20)
+'''test1 = TSTbuilder(5,20)
+test2 = TSTbuilder(5,20)
 test1.insert(b"TTTGC",1)
 test1.insert(b"AAAGC",2)
 if not test1.find(b"AAAGC",3):

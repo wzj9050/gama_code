@@ -47,16 +47,22 @@ genome = Fasta_reader(resp_fa)
 genome.read_generator()
 monochr_dict = genome.fa_dict[chrom_num]
 seq_baseline = genome.chroms
-for key in monochr_dict.keys():
-    if (start >= key[0]) & (end <= key[1]):
-        seq_gene = monochr_dict[key][start:end + 1]
-print('baseline done')
 
 # search the PAM and return the cleavage point and candidate sg sequences
-pam_search = PAMsearch()
 
-pam_search.goto_function(seq_gene, pam, k, gap, start)
-pam_search.rc_goto_function(seq_gene, pam, k, gap, start)
+pam_search = PAMsearch()
+for key in monochr_dict.keys():
+
+    if (start >= key[0])&(start < key[1]): 
+        seq_gene = monochr_dict[key][start:]
+        pam_search.goto_function(seq_gene, pam, k, gap, start)
+        pam_search.rc_goto_function(seq_gene, pam, k, gap, start)
+        if end <= key[0]: 
+            break
+print('baseline done')
+
+
+
 candidate_sg_seq = pam_search.sg_seq
 candidate_sg = pam_search.cri_cleave
 #print(candidate_sg_seq)
@@ -77,7 +83,7 @@ print('candidate_sg')
 
 # build the TST of sg
 
-tst_builder = TSTbuilder(4, k, len(candidate_sg))
+tst_builder = TSTbuilder(k, len(candidate_sg))
 for key in candidate_sg:
     if not tst_builder.find(candidate_sg_seq[key], k_f):
         tst_builder.insert(candidate_sg_seq[key], key)

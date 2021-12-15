@@ -69,7 +69,7 @@ class Fasta_reader:
 
 
 
-#t1 = Fasta_reader(r'..\mm10.fa')
+#t1 = Fasta_reader(r'.mm10.fa')
 #t1.read_generator()
 #print(len(t1.fa_dict.keys()))
 #print(t1.fa_dict.keys())
