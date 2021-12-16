@@ -72,7 +72,7 @@ class GTF_reader:
                 self.gtf_chrom_strand[key] = self.gtf_dict[key]
         return self.gtf_chrom_strand
 # Partial test
-#gtf = GTF_reader(r'..\mm10.refGene.gtf')
+#gtf = GTF_reader(r'mm10.refGene.gtf')
 #gtf.GTF_return()
 #print(gtf.gene_extract(['Gm20931']))
 # print(gtf.gene_extract(['WBGene00010966.1']))

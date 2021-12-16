@@ -1,23 +1,24 @@
 # TODO(Zijin): transform base letters into four-bite codes
 # TODO(Zijin): return leaf path(Done); return sequence(Done); return suffix; dynamic size of TST
 # TODO(Zijin): apply prefix DAWG to this algorithm to collapse space
-
+import numpy as np
 class TSTbuilder:
 
-    def __init__(self, alter_bases, k, n):
+    def __init__(self, k, n):
 
-        self.nex = [[0 for i in range(alter_bases)] for j in range(k * n)]
+        self.nex = np.zeros((4**int(3*k/5),4))
+
         self.cnt = 0
-        self.exist = [False] * k * n
-        self.exist_f = [False] * k * n
+        self.exist = [False] * 4
+        self.exist_f = [False] * 4
         self.subleaf = []
         self.seqs = {}
         self.only_seqs = []
         for i in range(50):
             exec('self.path_l{} = []'.format(i))
 
-    num_to_base = {0: b'A', 1: b'U', 2: b'G', 3: b'C'}
-    base_to_num = {0: 0, 19: 1, 6: 2, 2: 3}
+    num_to_base = {0.0: b'A', 1.0: b'U', 2.0: b'G', 3.0: b'C'}
+    base_to_num = {0: 0, 19: 1, 6: 2, 2: 3, 13:0}# 13 is to transform 'N' into 'A'
 
     # insert seq meanwhile removing all duplicate seqs
     def insert(self, s, id):
@@ -25,15 +26,18 @@ class TSTbuilder:
         p = 0
         for i in range(0, len(s)):
             c = self.base_to_num[s[i] - b'A'[0]]
+
             if self.nex[p][c] == 0:
                 self.cnt += 1
                 self.nex[p][c] = self.cnt
 
+                self.exist_f.append(False)
+                self.exist.append(False)
             p = self.nex[p][c]
-
+            p = int(p)
         self.exist[p] = 'True' + " " + str(id)
         self.exist_f[p] = True
-
+        
     # find if seq exist in tree and mark duplicate seqs and seqs with excessive overlap
     def find(self, s, k_f):
         s = s.upper()
@@ -46,6 +50,7 @@ class TSTbuilder:
             elif (self.nex[p][c] == 0) & (f_count >= k_f):
                 return True
             p = self.nex[p][c]
+            p = int(p)
             f_count += 1
         self.exist[p] = 'True' + " " + str(-1)
         return self.exist[p].split(sep=" ")[0]
@@ -91,14 +96,15 @@ class TSTbuilder:
                 exec('self.seqs[int(self.exist[layer].split(sep=" ")[1])] = self.path_l{}'.format(n - 1))
 
         else:
-            for node in [a for a in self.nex[layer] if a > 0]:
-                if n == 0:
-                    self.path_l0 = self.num_to_base[self.nex[layer].index(node)]
-                else:
-                    exec('self.path_l{} = self.path_l{}[:]'.format(n, n - 1))
-                    exec('self.path_l{} += self.num_to_base[self.nex[layer].index(node)]'.format(n))
-                sublayer = node
-                TSTbuilder.seq_return(self, sublayer, n + 1)
+            for node in range(4):
+                if self.nex[layer][node] != 0:
+                    if n == 0:
+                        self.path_l0 = self.num_to_base[node]
+                    else:
+                        exec('self.path_l{} = self.path_l{}[:]'.format(n, n - 1))
+                        exec('self.path_l{} += self.num_to_base[node]'.format(n))
+                    sublayer = int(self.nex[layer][node])
+                    TSTbuilder.seq_return(self, sublayer, n + 1)
         self.seqs[-1] = ""
         del self.seqs[-1]
         return self.seqs
@@ -107,13 +113,13 @@ class TSTbuilder:
 
 
 
-'''test1 = TSTbuilder(4,5,20)
-test2 = TSTbuilder(4,5,20)
+'''test1 = TSTbuilder(5,20)
+test2 = TSTbuilder(5,20)
 test1.insert(b"TTTGC",1)
 test1.insert(b"AAAGC",2)
 if not test1.find(b"AAAGC",3):
     test1.insert(b"AAAGC", 2)
-test1.insert(b"ATTGG",3)
+test1.insert(b"ATTGG",0)
 if not test1.find(b'AAAGG',-3):
     test1.insert(b'AAAGG',4)
 test1.insert(b"AAAGC",-2)
