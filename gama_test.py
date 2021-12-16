@@ -11,9 +11,9 @@ from TSTbuilder import TSTbuilder
 # variable parameters
 k = 20  # the length of sgRNA(without pam)
 k_f = 4  # front matching threhold to filter candidate sequences during building TST
-resp_gtf = r'mm10.refGene.gtf'  # user can use their own gtf
+resp_gtf = r'mm10.refGene.gtf'#r'ce11.ensGene.gtf'##r'mm10.refGene.gtf'  # user can use their own gtf
 chrom_num = 'chrY'# the chromosome the user interested in
-gene_name = ['Gm20931']#['WBGene00014472.1']
+gene_name = ['Gm20931']#['WBGene00014472.1']#
 
 resp_fa = r'mm10.fa'  # user can use their own fasta file, the first column should be the name of chromosomes
 pam = b'GG'  # the PAM sequence
@@ -29,6 +29,7 @@ gtf.GTF_return()
 # chro_m_p = gtf.chrom_strand_extract(chrom, '+')
 # chro_m_n = gtf.chrom_strand_extract(chrom, '-')
 chrom_22_g = gtf.gene_extract(gene_name)
+del gtf
 for key in chrom_22_g.keys():
     for i in chrom_22_g[key][0]:
         starts.append(int(i[0]))
@@ -38,7 +39,7 @@ end = max(ends)
 #print(type(start))
 
 
-print('chro_22_g')
+print('gtf read Done!')
 # {gene:[[(transcript start, transcript end)], [start_codon],[(exon start, exon end)],[(cds start, cds end)],chrom]}
 #print(chrom_22_g)
 
@@ -47,7 +48,7 @@ genome = Fasta_reader(resp_fa)
 genome.read_generator()
 monochr_dict = genome.fa_dict[chrom_num]
 seq_baseline = genome.chroms
-
+print('Fasta_read done!')
 # search the PAM and return the cleavage point and candidate sg sequences
 
 pam_search = PAMsearch()
@@ -59,7 +60,7 @@ for key in monochr_dict.keys():
         pam_search.rc_goto_function(seq_gene, pam, k, gap, start)
         if end <= key[0]: 
             break
-print('baseline done')
+print('Target PAM search done!')
 
 
 
@@ -74,8 +75,9 @@ for chrom in seq_baseline:
         pam_search.candidate_seq(seq, pam, k)
         pam_search.rc_candidate_seq(seq, pam, k)
 candidate_sg_seq_baseline = pam_search.ca_seq
-
-print('candidate_sg')
+del pam_search#release PAMSEARCH
+del genome
+print('baseline PAM search done!')
 # [cleavage_position]
 #print(candidate_sg)
 # print(candidate_sg_seq)
@@ -92,32 +94,33 @@ for baseline in candidate_sg_seq_baseline:
     if not tst_builder.find(baseline,k_f):
         tst_builder.insert(baseline,0)
 candidate_sg_seq_baseline = tst_builder.seq_return(0, 0).values()
-
+del tst_builder
 candidate_sg = list(candidate_sg_seq.keys())
 candidate_sg.sort()
-print('candidate_sg_seq')
+print('TST filtration done!')
 # {cleavage_position: sgRNA_seq}
 #print(candidate_sg_seq)
-print('candidate_ca_seq')
-for i in candidate_sg_seq_baseline:
-    print(i)
+
+
 # process alignment
-t0 = CFD_input(resp_cfd)
-t01 = t0.mismatch_build()
-t02 = t0.deletion_build()
-t03 = t0.insertion_build()
+cfd_input = CFD_input(resp_cfd)
+cfd_mismatch = cfd_input.mismatch_build()
+cfd_deletion = cfd_input.deletion_build()
+cfd_insertion = cfd_input.insertion_build()
+del cfd_input
 candidate_sg_seq_score = {}
 for key in candidate_sg:
     print(i_counter)
     i_counter+=1
-    smith_waterman = Smi_Wat_Ali(t01, t02, t03, ali_score_dict)
+    smith_waterman = Smi_Wat_Ali(cfd_mismatch, cfd_deletion, cfd_insertion, ali_score_dict)
     score = 0
     for seq in candidate_sg_seq_baseline:
         score += smith_waterman.scoring_matrix(candidate_sg_seq[key], seq)
     candidate_sg_seq_score[key] = [candidate_sg_seq[key], 100 / (100 + score)]
+    del smith_waterman
 candidate_sg = list(candidate_sg_seq_score.keys())
 candidate_sg.sort()
-print('candidate_sg_seq_score')
+print('Alignment done!')
 #print(candidate_sg_seq_score)
 # {cleavage:[seq,cfd_score]}
 
@@ -125,7 +128,7 @@ print('candidate_sg_seq_score')
 # merge the sequence and gene name and score
 merge_on = MergeOn(chrom_22_g, candidate_sg, candidate_sg_seq, candidate_sg_seq_score, chrom_num)
 candidate_sg_ongene = merge_on.return_result()
-
-print('candidate_sg_ongene')
+del merge_on
+print('Scoring done!')
 # {gene:[[cleavage_point, seq, min_distance to start_codon, on_exon?, on_cds?, CFD_score, CG_content, chrom]]}
 print(candidate_sg_ongene)
